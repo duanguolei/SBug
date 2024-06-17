@@ -1,0 +1,640 @@
+{% extends 'web/layout/manage.html' %}
+{% load static %}
+{% load project %}
+{% block css %}
+        <link rel="stylesheet" href="{% static 'web/plugin/editor-md/css/editormd.min.css' %}">
+    <link rel="stylesheet" href="{% static 'web/plugin/bootstrap-datepicker/css/bootstrap-datepicker.min.css' %}">
+    <link rel="stylesheet" href="{% static 'web/plugin/bootstrap-select/css/bootstrap-select.min.css' %}">
+    <link rel="stylesheet" href="{% static 'web/plugin/select2/css/select2.min.css' %}">
+
+
+    <style>
+       .issues-list .number {
+            width: 100px;
+            text-align: right;
+        }
+
+        .issues-list .number a {
+            font-weight: 500;
+            padding: 0 10px;
+        }
+
+        .issues-list .issue .tags {
+            padding: 10px 0;
+        }
+
+        .issues-list .issue .tags span {
+            margin-right: 20px;
+            display: inline-block;
+            font-size: 12px;
+        }
+
+        .issues-list .issue .tags .type {
+            color: white;
+            padding: 1px 5px;
+            border-radius: 5px;
+            background-color: #dddddd;
+        }
+
+        .editormd {
+            margin-bottom: 0;
+        }
+
+        .pd-0 {
+            padding: 0 !important;
+        }
+
+        /* 筛选 */
+        .filter-area .item {
+            margin-bottom: 15px;
+
+
+        }
+
+        .filter-area .item .title {
+            padding: 10px 0;
+        }
+
+        .filter-area .item .check-list a {
+            text-decoration: none;
+            display: inline-block;
+            min-width: 65px;
+
+        }
+
+        .filter-area .item .check-list label {
+            font-weight: 200;
+            font-size: 13px;
+            margin-left: 3px;
+        }
+
+        .filter-area .item .check-list a:hover {
+            font-weight: 300;
+        }
+
+        .filter-area .item .check-list .cell {
+            margin-right: 10px;
+        }
+
+    </style>
+{% endblock %}
+
+{% block content %}
+
+    <div class="container-fluid clearfix" style="padding: 20px 0">
+    <div class="col-sm-3">
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <i class="fa fa-search" aria-hidden="true"></i>筛选
+            </div>
+            <div class="filter-area panel-body">
+            {% for item in filter_list %}
+                    <div class="item">
+               <div class="title">{{ item.title }}</div>
+            <div class="check-list">
+                {% for data in item.filter %}
+                    {{ data }}
+                {% endfor %}
+            </div>
+
+    </div>
+            {% endfor %}
+
+
+       </div>
+    </div>
+    </div>
+    <div class="col-sm-9">
+
+
+          <div class="panel panel-default">
+            <div class="panel-heading">
+                <i class="fa fa-quora" aria-hidden="true"></i>问题
+            </div>
+            <div class="panel-body">
+                <a class="btn btn-success btn-sm" data-toggle="modal" data-target="#addModal">新建问题</a>
+                <a class="btn btn-primary btn-sm" data-toggle="modal" data-target="#inviteModal">邀请成员</a>
+            </div>
+                  <table class="table">
+        <tbody class="issues-list">
+        {% for item in item_list %}
+          <tr>
+                            <td class="number">
+                                <i class="fa fa-circle text-{{ item.priority }}"></i>
+                                <a target="_blank"
+                                   href="{% url 'web:issues_detail' project_id=request.tracer.project.id detail_id=item.id %}">{{ item.id | string_num_just }}</a>
+
+                            </td>
+                            <td class="issue">
+                                <div>
+                                    <a target="_blank"
+                                       href="{% url 'web:issues_detail' project_id=request.tracer.project.id detail_id=item.id %}">{{ item.subject }}</a>
+                                </div>
+                                <div class="tags">
+                                    <span class="type">
+                                        {{ item.issues_type.title }}
+                                    </span>
+                                    <span>
+                                        <i class="fa fa-refresh" aria-hidden="true"></i>
+                                        {{ item.get_status_display }}
+                                    </span>
+                                    {% if item.assign %}
+                                        <span>
+                                        <i class="fa fa-hand-o-right" aria-hidden="true"></i>
+                                        {{ item.assign.username }}
+                                    </span>
+                                    {% endif %}
+
+                                    <span>
+                                        <i class="fa fa-user-o" aria-hidden="true"></i>
+                                        {{ item.creator.username }}
+                                    </span>
+                                    {% if item.end_date %}
+                                        <span><i class="fa fa-calendar"
+                                                 aria-hidden="true"></i> {{ item.end_date }} 截止</span>
+                                    {% endif %}
+                                    <span><i class="fa fa-clock-o"
+                                             aria-hidden="true"></i> {{ item.latest_update_datetime }} 更新</span>
+                                </div>
+                            </td>
+                        </tr>
+
+        {% endfor %}
+
+
+        </tbody>
+      </table>
+
+        </div>
+                    <nav aria-label="Page navigation">
+      <ul class="pagination" id="pageul">
+
+      </ul>
+    </nav>
+    </div>
+    </div>
+
+   <div class="modal fade"  id='addModal' tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+  <div class="modal-dialog modal-lg"  role="document">
+   <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+          <h4 class="modal-title" id="myLargeModalLabel">新建问题</h4>
+        </div>
+        <div class="modal-body">
+                  <form class="form-horizontal" id="addform">
+                  {% csrf_token %}
+                         {{ form.media }}
+
+                        <div class="form-group">
+                            <label for="{{ form.issues_type.id_for_label }}"
+                                   class="col-md-2 control-label">{{ form.issues_type.label }}</label>
+                            <div class="col-md-10">
+                                <div>
+                                    <div>
+                                        {{ form.issues_type }}
+                                    </div>
+                                    <div class="error-msg"></div>
+                                </div>
+                                <div class="error-msg"></div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.subject.id_for_label }}"
+                                   class="col-md-2 control-label">{{ form.subject.label }}</label>
+                            <div class="col-md-10">
+                                <div>
+                                    <div>
+                                        {{ form.subject }}
+                                    </div>
+                                    <div class="error-msg"></div>
+                                </div>
+                                <div class="error-msg"></div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.module.id_for_label }}"
+                                   class="col-md-2 control-label">{{ form.module.label }}</label>
+                            <div class="col-md-10">
+                                <div>
+                                    <div>
+                                        {{ form.module }}
+                                    </div>
+                                    <div class="error-msg"></div>
+                                </div>
+                                <div class="error-msg"></div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.desc.id_for_label }}"
+                                   class="col-md-2 control-label">{{ form.desc.label }}</label>
+                            <div class="col-md-10">
+                                <div>
+{#                                    <div id="editor">#}
+{#                                        {{ form.desc }}#}
+{#                                    </div>#}
+                                    <div>
+                                    {{ form.desc }}
+                                    </div>
+                                    <div class="error-msg"></div>
+                                </div>
+                                <div class="error-msg"></div>
+                            </div>
+                        </div>
+                      <div class="form-group clearfix">
+
+                          <div class="col-md-6 pd-0">
+                                <label for="{{ form.status.id_for_label }}"
+                                       class="col-md-4 control-label">{{ form.status.label }}</label>
+                                <div class="col-md-8 clearfix">
+                                    <div>
+                                        {{ form.status }}
+                                    </div>
+                                    <div class="error-msg"></div>
+
+                                </div>
+                            </div>
+                            <div class="col-md-6 pd-0">
+                                <label for=" {{ form.priority.id_for_label }}"
+                                       class="col-md-4 control-label">{{ form.priority.label }}</label>
+                                <div class="col-md-8">
+                                    <div>
+                                        {{ form.priority }}
+                                    </div>
+                                    <div class="error-msg"></div>
+
+                                </div>
+                            </div>
+                      </div>
+
+                        <div class="form-group clearfix">
+                            <div class="col-md-6 pd-0">
+                                <label for="inputPassword3" class="col-md-4 control-label">指派给</label>
+                                <div class="col-md-8">
+                                    {{ form.assign }}
+                                    <div class="error-msg"></div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 pd-0">
+                                <label for="inputPassword3" class="col-md-4 control-label">关注者</label>
+                                <div class="col-md-8">
+
+                                    {{ form.attention }}
+
+                                    <div class="error-msg"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                            <div class="form-group clearfix">
+                            <div class="col-md-6 pd-0">
+                                <label for="inputPassword3" class="col-md-4 control-label">开始时间</label>
+                                <div class="col-md-8">
+
+                                    <div class="input-group">
+                                        <span class="input-group-addon" id="sizing-addon2">
+                                            <i class="fa fa-calendar" aria-hidden="true"></i>
+                                        </span>
+                                        {{ form.start_date }}
+                                    </div>
+                                    <span class="error-msg"></span>
+
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 pd-0">
+                                <label for="inputPassword3" class="col-md-4 control-label">截止时间</label>
+                                <div class="col-md-8">
+
+                                    <div class="input-group">
+                                        <span class="input-group-addon" id="sizing-addon2">
+                                            <i class="fa fa-calendar" aria-hidden="true"></i>
+                                        </span>
+                                        {{ form.end_date }}
+                                    </div>
+                                    <span class="error-msg"></span>
+                                </div>
+                            </div>
+                        </div>
+                           <div class="form-group clearfix">
+                            <div class="col-md-6 pd-0">
+                                <label for="inputPassword3" class="col-md-4 control-label">模式</label>
+                                <div class="col-md-8">
+                                    <div>
+                                        {{ form.mode }}
+                                    </div>
+                                    <div class="error-msg"></div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 pd-0">
+                                <label for="inputPassword3" class="col-md-4 control-label"> 父问题</label>
+                                <div class="col-md-8">
+
+                                    {{ form.parent }}
+
+                                    <div class="error-msg"></div>
+                                </div>
+                            </div>
+                        </div>
+</form>
+
+        </div>
+          <div class="modal-footer">
+                  <a class="btn btn-success btn-sm" id="addbutton">确定</a>
+                  <a class="btn btn-default btn-sm" data-dismiss="modal" aria-label="Close">取消</a>
+          </div>
+      </div><!-- /.modal-content -->
+
+    </div>
+  </div>
+
+      <div class="modal fade"  id='inviteModal' tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+  <div class="modal-dialog modal-lg"  role="document">
+   <div class="modal-content">
+
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+          <h4 class="modal-title" id="myLargeModalLabel">邀请成员</h4>
+        </div>
+        <div class="modal-body">
+                  <form class="form-horizontal" id="invitefrom">
+                  {% csrf_token %}
+                  {% for item in invite_form %}
+                        <div class="form-group">
+                            <label for="{{ item.id_for_label }}"
+                                   class="col-md-2 control-label">{{ item.label }}</label>
+                                 <span>{% if item.help_text %}({{ item.help_text }}) {% endif %}</span>
+
+                            <div class="col-md-10">
+                                <div>
+                                    <div>
+                                        {{ item }}
+                                    </div>
+                                    <div class="error-msg"></div>
+                                </div>
+                                <div class="error-msg"></div>
+                            </div>
+                        </div>
+                      {% endfor %}
+</form>
+            <a class="btn btn-success btn-sm" id="invitebutton">生成邀请码</a>
+                  <a class="btn btn-default btn-sm" data-dismiss="modal" aria-label="Close">取消</a>
+
+        </div>
+
+          <div class="modal-footer hide" id="invite_content">
+            <dv class="form-group">
+                <div class="input-group">
+                    <div class="input-group-btn">
+                        <input type="button" value="邀请链接" class="btn btn-success">
+                    </div>
+                    <input type="text" class="form-control" id="inviteUrl">
+                    <div class="input-group-btn">
+                        <input type="button" value="复制链接" class="btn btn-primary" id="copyUrl">
+                    </div>
+                </div>
+
+            </dv>
+
+          </div>
+      </div><!-- /.modal-content -->
+
+    </div>
+  </div>
+
+
+
+{% endblock %}
+{% block js %}
+
+     <script src="{% static 'web/plugin/editor-md/editormd.min.js' %}"></script>
+   <script src="{% static 'web/plugin/editor-md/lib/marked.min.js' %}"></script>
+   <script src="{% static 'web/plugin/editor-md/lib/prettify.min.js' %}"></script>
+   <script src="{% static 'web/plugin/editor-md/lib/raphael.min.js' %}"></script>
+   <script src="{% static 'web/plugin/editor-md/lib/underscore.min.js' %}"></script>
+   <script src="{% static 'web/plugin/editor-md/lib/sequence-diagram.min.js' %}"></script>
+   <script src="{% static 'web/plugin/editor-md/lib/flowchart.min.js' %}"></script>
+   <script src="{% static 'web/plugin/editor-md/lib/jquery.flowchart.min.js' %}"></script>
+
+        <script src="{% static 'web/plugin/bootstrap-datepicker/js/bootstrap-datepicker.min.js' %}"></script>
+    <script src="{% static 'web/plugin/bootstrap-datepicker/locales/bootstrap-datepicker.zh-CN.min.js' %}"></script>
+    <script src="{% static 'web/plugin/bootstrap-select/js/bootstrap-select.min.js' %}"></script>
+    <script src="{% static 'web/plugin/bootstrap-select/js/i18n/defaults-zh_CN.min.js' %}"></script>
+
+
+   <script>
+       var WIKI_UPLOAD_URL="{% url 'web:wiki_upload' project_id=request.tracer.project.id   %}"
+
+
+       $(function () {
+                  bindinvitebutoon();
+       bindBootStrapShownEvent();
+       initdatapark()
+        bindaddbutoon();
+       initautoincrementpage();
+       autoincrementpage();
+       bindCLickCheckFilter();
+
+
+    })
+
+       function bindCLickCheckFilter() {
+           {#点击checkbox下面的a#}
+           $('.filter-area').find(":checkbox").click(function () {
+
+               location.href=$(this).parent().attr('href')
+           })
+       }
+       function autoincrementpage() {
+
+           var pageul=$('#pageul');
+           pageul.empty();
+
+           var queryParmas=new URLSearchParams(new URL(document.URL).search);
+           var page=parseInt(queryParmas.get('page'));
+
+           var now_url=document.URL;
+
+           if(!page)
+           {
+               page=1
+               queryParmas.set('page',page)
+               now_url=window.location.origin+window.location.pathname+"?"+queryParmas.toString();
+           }
+            var previw_page=page-1;
+               var next_page=page+1;
+               queryParmas.set('page',previw_page)
+               var url=window.location.origin+window.location.pathname+"?"+queryParmas.toString();
+               var previwli=$('<li>').append(
+                   $('<a>').attr('href',url).attr('aria-label','Previous').append(
+                       $("<span>").attr('aria-hidden',true).text('«')
+                   )
+               );
+               pageul.append(previwli)
+
+            if(page>3){
+               for(i=-2;i<3;i++) {
+                   var li_page = page + i;
+                   queryParmas.set('page',li_page)
+                   var url=window.location.origin+window.location.pathname+"?"+queryParmas.toString();
+
+                   if (page == li_page) {
+                       var li = $('<li>').append(
+                           $('<a>').attr('href', url).text(li_page)).attr('class', 'active');
+                       pageul.append(li)
+                   } else {
+                       var li = $('<li>').append(
+                           $('<a>').attr('href', url).text(li_page));
+                       pageul.append(li)
+                   }
+               }
+            }
+            else{
+                 for(i=1;i<6;i++) {
+                   var li_page = i;
+                   queryParmas.set('page',li_page);
+                   var url=window.location.origin+window.location.pathname+"?"+queryParmas.toString();
+
+                   if (page == li_page) {
+                       var li = $('<li>').append(
+                           $('<a>').attr('href', url).text(li_page)).attr('class', 'active');
+                       pageul.append(li)
+                   } else {
+                       var li = $('<li>').append(
+                           $('<a>').attr('href', url).text(li_page));
+                       pageul.append(li)
+                   }
+               }
+            }
+
+                 queryParmas.set('page',next_page)
+                   var url=window.location.origin+window.location.pathname+"?"+queryParmas.toString();
+
+               var nextli=$('<li>').append(
+                   $('<a>').attr('href',url).attr('aria-label','Previous').append(
+                       $("<span>").attr('aria-hidden',true).text('»')
+                   )
+               );
+               pageul.append(nextli)
+       }
+
+
+       function  initautoincrementpage() {
+
+           $('#pageul').click(
+               function () {
+                    autoincrementpage()
+
+       }
+       )
+       }
+
+        function bindBootStrapShownEvent() {
+            $('#addModal').on('shown.bs.modal', function (event) {
+                // 对话框弹出时，内容触发。
+                initEditorMd();
+            })
+        }
+
+        /*
+        初始化markdown编辑器（textare转换为编辑器）
+         */
+        function initEditorMd() {
+            editormd('id_desc-wmd-wrapper', {
+                placeholder: "请输入内容",
+                {#height: 300,#}
+                path: "{% static 'web/plugin/editor-md/lib/' %}",
+                imageUpload: true,
+                imageFormats: ["jpg", 'jpeg', 'png', 'gif'],
+                imageUploadURL: WIKI_UPLOAD_URL
+            })
+        }
+        function initdatapark() {
+            {#显示时间日期插件#}
+            $('#id_start_date,#id_end_date').datepicker({
+                     format: 'yyyy-mm-dd',
+                startDate: '0',
+                language: "zh-CN",
+                autoclose: true
+            })
+
+        }
+
+        function bindaddbutoon() {
+            $('#addbutton').click(function () {
+                console.log('addbutoon')
+                $.ajax({
+                    url:'{% url "web:issues" project_id=request.tracer.project.id %}',
+                     type: "POST",
+                    dataType: "JSON",
+                    data:$("#addform").serialize(),
+                    success:function (res) {
+                        console.log(res)
+                    if(res.status){
+                        location.reload()
+                    }
+                    else{
+                        $.each(res.error,function (key,value) {
+                            $("#id_"+key).parent().next('.error-msg').text(value[0])
+
+                        })
+
+                    }
+
+                }
+
+
+                    }
+
+                )
+            })
+
+        }
+
+        function bindinvitebutoon() {
+            $('#invitebutton').click(function () {
+                console.log('invitebutoon')
+                $.ajax({
+                    url:'{% url "web:issues_invite" project_id=request.tracer.project.id %}',
+                     type: "POST",
+                    dataType: "JSON",
+                    data:$("#invitefrom").serialize(),
+                    success:function (res) {
+                        console.log(res)
+                    if(res.status){
+                        var code=res['code'];
+                        $('#invite_content').removeClass('hide');
+                        $('#inviteUrl').attr('value',code)
+
+                    }
+                    else{
+                        $.each(res.error,function (key,value) {
+                            $("#id_"+key).parent().next('.error-msg').text(value[0])
+
+                        })
+
+                    }
+
+                }
+
+
+                    }
+
+                )
+            })
+            $('#copyUrl').click(function () {
+                var textInput=$('#inviteUrl')[0];
+                textInput.select();
+                document.execCommand('Copy');
+                $('#copyUrl').attr('value','复制成功');
+
+            })
+
+        }
+
+    </script>
+
+{% endblock %}

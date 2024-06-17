@@ -1,0 +1,102 @@
+
+{% load static %}
+{% load project %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
+{#    <link rel="stylesheet" href="https://cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.css">#}
+
+    <link rel="stylesheet" href="{% static 'web/plugin/bookstrap/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'web/plugin/font-awesome/css/font-awesome.css' %}">
+    <link rel="stylesheet" href="{% static 'web/css/manage.css' %}">
+
+    <style>
+        .navbar-av {
+            border-radius: 0;
+        }
+
+        .error-msg {
+            color: red;
+            position: absolute;
+            font-size: 13px;
+        }
+    </style>
+    {% block css %}{% endblock %}
+</head>
+<body>
+
+<nav class="navbar navbar-av">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="{% url 'web:project.project_list' %}">Tracer</a>
+
+        </div>
+
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+{#        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">#}
+                           <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                             <ul class="nav navbar-nav">
+      {% all_project_lsit request %}
+
+                               {% if request.tracer.project %}
+                                {% manage_menu_list request %}
+
+                                {% endif %}
+            </ul>
+
+
+{#             </div>#}
+
+
+            <ul class="nav navbar-nav">
+{#                {% all_project_list request %}#}
+{#                {% if request.tracer.project %}#}
+{#                    {% manage_menu_list request %}#}
+{#                {% endif %}#}
+            </ul>
+
+            <ul class="nav navbar-nav navbar-right" style="float: right">
+                <li><a href="#">工作台</a></li>
+                <li><a href="#">日历</a></li>
+                <li><a href="#"> <i class="far fa-desktop" aria-hidden="true"></i> </a></li>
+                <li><a href="#"> <i class="fa fa-bookmark" aria-hidden="true"></i> </a></li>
+
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                       aria-expanded="false">{{  request.tracer.user.username  }} <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="{% url 'web:index' %}">官 网</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="{% url 'web:logout' %}">退 出</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+{% block content %}{% endblock %}
+
+
+<script src="{% static 'web/js/3.7.1-jquery.min.js' %}"></script>
+<script src="{% static 'web/plugin/bookstrap/js/bootstrap.min.js' %}"></script>
+<script src="{% static 'web/plugin/Highcharts-10.0.0/code/highcharts.js'%}"></script>
+<script src="{% static 'web/plugin/Highcharts-10.0.0/code/highcharts.src.js'%}"></script>
+{% block js %}
+
+
+
+
+{% endblock %}
+</body>
+</html>

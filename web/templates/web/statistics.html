@@ -1,0 +1,245 @@
+{% extends 'web/layout/manage.html' %}
+{% load static %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'web/plugin/daterangepicker/daterangepicker.css' %}">
+{% endblock %}
+{% block content %}
+<div class="container-fluid" style="margin-top: 20px">
+<div>
+    <div class="input-group" style="width: 300px">
+        <span class="input-group-addon">日期范围</span>
+        <input id="rangePicker" type="text" class="form-control">
+
+    </div>
+</div>
+
+
+        <div class="row" style="margin-top: 20px;">
+            <div class="col-md-8">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <i class="fa fa-bar-chart" aria-hidden="true"></i> 人员工作进度
+                    </div>
+                    <div class="panel-body">
+                        <div id="projectUser" style="height: 300px;"></div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-md-4">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <i class="fa fa-pie-chart" aria-hidden="true"></i> 优先级统计
+                    </div>
+                    <div class="panel-body">
+                        <div id="priority" style="height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+</div>
+{% endblock %}
+
+{% block js %}
+       <script src="{% static 'web/plugin/daterangepicker/moment.min.js' %}"></script>
+      <script src="{% static 'web/plugin/daterangepicker/daterangepicker.js' %}"></script>
+      <script src="{% static 'web/plugin/Highcharts-10.0.0/code/modules/exporting.js' %}"></script>
+      <script src="{% static 'web/plugin/Highcharts-10.0.0/code/modules/variable-pie.js' %}"></script>
+{#      <script src="{% static 'web/plugin/Highcharts-10.0.0/code/themes/sand-signika.js' %}"></script>#}
+      <script src="{% static 'web/plugin/Highcharts-10.0.0/code/themes/dark-blue.js.js' %}"></script>
+
+    <script>
+            $(function () {
+
+                initdateRangePicker();
+                priority(moment().startOf('year').format('YYYY-MM-DD'),moment().endOf('year').format('YYYY-MM-DD'))
+                projectUser(moment().startOf('year').format('YYYY-MM-DD'),moment().endOf('year').format('YYYY-MM-DD'))
+            })
+            function  initdateRangePicker() {
+
+                    var options = {
+                maxDate: moment(),
+                alwaysShowCalendars: true,
+                showWeekNumbers: true,
+                ranges: {
+                    '今天': [moment(), moment()],
+                    '昨天': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    '最近7天': [moment().subtract(6, 'days'), moment()],
+                    '最近30天': [moment().subtract(29, 'days'), moment()],
+                    '本月': [moment().startOf('month'), moment().endOf('month')]
+                },
+                locale: {
+                    format: 'YYYY-MM-DD',
+                    separator: ' 至 ',
+                    applyLabel: '确定',
+                    cancelLabel: '取消',
+                    fromLabel: '开始',
+                    toLabel: '结束',
+                    customRangeLabel: '自定义',
+                    weekLabel: 'W',
+                    daysOfWeek: ['一', '二', '三', '四', '五', '六', '日'],
+                    monthNames: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+                    firstDay: 1
+                }
+            };
+
+
+                $('#rangePicker').daterangepicker(options,
+                function (start,end,label) {
+                    priority(start.format('YYYY-MM-DD'), end.add(1, 'days').format('YYYY-MM-DD'))
+                    projectUser(start.format('YYYY-MM-DD'), end.add(1, 'days').format('YYYY-MM-DD'))
+                }
+                )
+
+            }
+
+            function priority(start,end) {
+                $.ajax({
+                    url:'{% url "web:statistics" project_id=request.tracer.project.id %}',
+                    type:'POST',
+                    data:{type:'pie',start:start,end:end},
+                    dataType:"JSON",
+                    success:function (res) {
+                        if(res.status){
+
+                        var config={
+                    chart: {
+                        type: 'variablepie'
+                    },
+                    title: {
+                        text: null
+                    },
+                    subtitle: {
+                        text: ''
+                    },
+                      credits: {
+                                    enabled: false // 关闭版权信息
+                                },
+                    tooltip: {
+                        pointFormat: '{series.name}: <b>{point.y}</b>'
+                    },
+                                            plotOptions: {
+                                    pie: {
+                                        allowPointSelect: true,
+                                        cursor: 'pointer',
+                                        dataLabels: {
+                                            enabled: false
+                                        },
+                                        showInLegend: true
+                                    }
+                                },
+                    series: [{
+                         name: '优先级数量',
+                        colorByPoint: true,
+                        data:null,
+                    }]
+                };
+                         var data=res.data;
+                        config.series[0].data=data;
+                        console.log(config)
+                        Highcharts.chart('priority',config)
+                                        }
+
+                    }
+
+                })
+
+            }
+
+
+               function projectUser(start,end) {
+                $.ajax({
+                    url:'{% url "web:statistics" project_id=request.tracer.project.id %}',
+                    type:'POST',
+                    data:{type:'projectUserLine',start:start,end:end},
+                    dataType:"JSON",
+                    success:function (res) {
+                        if(res.status){
+
+                        var config={
+                                chart: {
+                                    type: 'column'
+                                },
+                                title: {
+                                    text: ''
+                                },
+                                credits: {
+                                    enabled: false // 关闭版权信息
+                                },
+                                xAxis: {
+                                    categories: ['苹果', '橘子', '梨', '葡萄', '香蕉']
+                                },
+                                yAxis: {
+                                    min: 0,
+                                    title: {
+                                        text: ''
+                                    },
+                                    stackLabels: {  // 堆叠数据标签
+                                        enabled: true,
+                                        style: {
+                                            fontWeight: 'bold',
+                                            color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+                                        }
+                                    }
+                                },
+                                legend: {
+                                    align: 'right',
+                                    x: -30,
+                                    verticalAlign: 'top',
+                                    y: 25,
+                                    floating: true,
+                                    backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || 'white',
+                                    borderColor: '#CCC',
+                                    borderWidth: 1,
+                                    shadow: false
+                                },
+                                tooltip: {
+                                    formatter: function () {
+                                        return '<b>' + this.x + '</b><br/>' +
+                                            this.series.name + ': ' + this.y + '<br/>' +
+                                            '总量: ' + this.point.stackTotal;
+                                    }
+                                },
+                                plotOptions: {
+                                    column: {
+                                        stacking: 'normal',
+                                        dataLabels: {
+                                            enabled: true,
+                                            color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white',
+                                            style: {
+                                                // 如果不需要数据标签阴影，可以将 textOutline 设置为 'none'
+                                                textOutline: '1px 1px black'
+                                            }
+                                        }
+                                    }
+                                },
+                                series: [{
+                                    name: '小张',
+                                    data: [5, 3, 4, 7, 2]
+                                }, {
+                                    name: '小彭',
+                                    data: [2, 2, 3, 2, 1]
+                                }, {
+                                    name: '小潘',
+                                    data: [3, 4, 4, 2, 5]
+                                }]
+                            };
+                         var data=res.data;
+                         var categories=res.categories;
+                        config.series=data;
+                        config.xAxis.categories=categories;
+                        console.log(config);
+                        Highcharts.chart('projectUser',config)
+                                        }
+
+                    }
+
+                })
+
+            }
+
+            </script>
+
+
+{% endblock %}

@@ -1,0 +1,181 @@
+{% extends 'web/layout/manage.html' %}
+
+{% load static %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'web/plugin/editor-md/css/editormd.min.css' %}">
+<style>
+
+      .panel-default {
+            margin-top: 10px;
+        }
+
+        .panel-default .panel-heading {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+
+        .panel-body {
+            padding: 0;
+        }
+
+        .title-list {
+            border-right: 1px solid #dddddd;
+            min-height: 700px;
+        }
+
+        .title-list ul {
+            padding-left: 15px;
+        }
+
+        .title-list ul a {
+            display: block;
+            padding: 5px 0;
+        }
+
+        .content {
+            border-left: 1px solid #dddddd;
+            min-height: 700px;
+            margin-left: -1px;
+        }
+
+        .editormd-fullscreen{
+            z-index: 1001;
+        }
+
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid" style="margin-top: 5px">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <div>
+            <i class="fa fa-book" aria-hidden="true"></i>wiki文档</div>
+
+            <div class="function">
+            <a type="button" class="btn btn-success btn-xs" href="{% url 'web:wiki_add' project_id=request.tracer.project.id%}">
+                <i class="fa fa-plus-circle" aria-hidden="true"></i>新建
+            </a>
+        </div>
+
+        </div>
+
+
+        <div class="panel-body">
+
+            <div class="col-sm-3 title-list">
+                  <ul id="catlog">
+
+                </ul>
+            </div>
+
+            <div class="col-sm-9 content">
+               <form method="post">
+                   {% csrf_token %}
+{#                  {{ form.media }}#}
+{#                      {{ form.as_p }}#}
+
+{#下面是用插件的形式，上述js,css文件，对id 为editor加载#}
+                   {% for item in form %}
+                       {% if item.name == "content" %}
+                       <div class="form-group">
+    <label for="{{ item.id_for_label }}">{{ item.label }}</label>
+                           <div id='editor'> {{ item }}</div>
+             <span class="error-msg">{{ item.errors.0 }}</span>
+  </div>
+                       {% else %}
+                                     <div class="form-group">
+    <label for="{{ item.id_for_label }}">{{ item.label }}</label>
+                          {{ item }}
+             <span class="error-msg">{{ item.errors.0 }}</span>
+  </div>
+                       {% endif %}
+                   {% endfor %}
+
+  <button type="submit" class="btn btn-primary">提交</button>
+</form>
+
+            </div>
+
+        </div>
+    </div>
+    </div>
+
+
+
+{% endblock %}
+
+
+{% block js %}
+
+<script>
+var WIKI_DETAIL_URL="{% url 'web:wiki' project_id=request.tracer.project.id %}"
+var WIKI_UPLOAD_URL="{% url 'web:wiki_upload' project_id=request.tracer.project.id   %}"
+$(function () {
+    console.log('init')
+        initeditorMd();
+    initCatelog();
+
+})
+
+function initCatelog() {
+    $.ajax(
+        {
+
+            url:"{% url 'web:weki_catelog' project_id=request.tracer.project.id%}",
+            type:"GET",
+            dataType:"JSON",
+            success:function (res) {
+                console.log(res)
+                if(res.status){
+                    $.each(res.data,function (index,item) {
+                        var href=WIKI_DETAIL_URL+'?wiki_id='+item.id;
+
+                    if(!item.parent_id){
+                        var li=$("<li>").attr('id',"li_id_"+item.id).append(
+                            $('<a>').text(item.title).attr('href',href)
+                        ).append($("<ul>"))
+                        $("#catlog").append(li)
+                    }
+                    else {
+                         var li=$("<li>").attr('id',"li_id_"+item.id).append(
+                            $('<a>').text(item.title).attr('href',href)).append($("<ul>"))
+                        $("#li_id_"+item.parent_id).children('ul').append(li)
+
+
+                    }
+
+                    })
+
+                }
+
+            }
+
+
+        }
+    )
+
+}
+
+function  initeditorMd() {
+    var WIKI_UPLOAD_URL="{% url 'web:wiki_upload' project_id=request.tracer.project.id   %}"
+
+    editormd('editor',{
+        placeholder:"请输入内容",
+        height:500,
+        path:'{% static 'web/plugin/editor-md/lib/' %}',
+        {#上传图片集#}
+        imageUpload:true,
+        {#imageFormats:[上传图片格式]#}
+        imageUploadURL:WIKI_UPLOAD_URL
+
+    })
+}
+
+</script>
+
+   <script src="{% static 'web/plugin/editor-md/editormd.min.js' %}"></script>
+{% endblock %}
+
+

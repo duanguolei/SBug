@@ -1,0 +1,566 @@
+{% extends 'web/layout/manage.html' %}
+{% load project %}
+{% load static %}
+{% block css %}
+    <style>
+
+ .panel-default .panel-heading {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+
+        .panel-default > .panel-heading a {
+            text-decoration: none;
+        }
+
+        .panel-default > .panel-heading span {
+            padding: 0 5px;
+        }
+
+        .panel-default > .panel-heading .function .upload {
+            overflow: hidden;
+        }
+
+        .panel-default > .panel-heading .function .upload input {
+            opacity: 0;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 76px;
+            left: -2px;
+            overflow: hidden;
+        }
+
+        .upload-progress {
+            position: fixed;
+            right: 2px;
+            bottom: 2px;
+            width: 400px;
+        }
+
+        .upload-progress .progress-error {
+            color: red;}
+
+
+        #error-modal {width: 40%;
+            position: absolute;
+            top: 20%;
+            left: 35%;
+            opacity: 1;
+            border-radius:10px;
+            width: 400px;
+            height: auto;
+        }
+
+    </style>
+{% endblock %}
+
+
+{% block content %}
+
+    <div class="container-fluid" >
+
+    <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+      </div>
+      <div class="modal-body">
+       <form id="form" >
+            <input type="text" name="fid" id="fid" style="display: none">
+           {% for item in form %}
+               <div class="form-group">
+                   <label for="{{ item.id_for_label }}">
+                       {{ item.label }}
+                   </label>
+               </div>
+               {{ item }}
+
+               <span class="error-msg">
+
+               {{ item.errors.0 }}
+               </span>
+
+           {% endfor %}
+       </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">离开</button>
+        <button type="button" class="btn btn-primary" id="btnsubmit">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="modal fade" id="alertModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+
+
+  <div class="modal-dialog" role="document">
+
+     <div class="alert alert-danger alert-dismissible fade in" role="alert">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close" ><span aria-hidden="true">×</span></button>
+      <h4>提示！</h4>
+      <p>
+          删除后无法恢复，是否确认删除？
+      </p>
+<div>
+
+
+
+        <button type="button" class="btn btn-danger" id="btndelete">确认删除</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+</div>
+    </div>
+    </div>
+
+</div>
+
+
+   <div class="panel panel-default" style="margin-top: 30px">
+
+
+      <div class="panel-heading">
+
+            <div>
+                <a href="{% url 'web:file'  project_id=request.tracer.project.id %}" style="color:black ">  <i class="fa fa-home" aria-hidden="true"></i>
+                    <span>文件库</span></a>
+
+          {% for cret in breadcrumb_list %}
+
+                 <a href="{% url 'web:file'  project_id=request.tracer.project.id %}?folder={{ cret.id }}" class="cret_id" data-folder="{{ cret.id }}"  style="color:black"> <i class="fa fa-caret-right " aria-hidden="true"></i>
+                 <span>
+                     {{ cret.name }}
+                 </span>
+                 </a>
+
+          {% endfor %}
+
+             </div>
+
+                <div class="function">
+                    <div class="btn btn-primary btn-xs upload" style="position: relative">
+                        <div><i class="fa fa-upload" aria-hidden="true"></i> 上传文件</div>
+                        <input type="file" multiple name="uploadFile" id="uploadFile">
+                    </div>
+                    <a class="btn btn-success btn-xs" data-toggle="modal" data-target="#addModal" data-whatever="新建文件夹">
+                        <i class="fa fa-plus-circle" aria-hidden="true"></i> 新建文件夹
+                    </a>
+                </div>
+            </div>
+
+
+      </div>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th>名称</th>
+            <th>大小</th>
+            <th>更新者</th>
+            <th>更新时间</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for item in file_object_list %}
+          <tr>
+
+              {% if item.file_type == 1 %}
+                    <td scope="row">
+                <i class="fa fa-file-{{ item.name | dovide_file_type }}" aria-hidden="true"></i>
+{#                <i class="fa fa-file-o" aria-hidden="true"></i>#}
+
+
+
+                <a href="{{ item.file_path }}">{{ item.name }}</a>
+                    </td>
+              <td>{{ item.file_size | divide_by_1024}} KB</td>
+
+              {% else %}
+                       <td scope="row">
+                <i class="fa fa-folder" aria-hidden="true" style="color: #ffd563"></i>
+                    <a href="{% url 'web:file' project_id=request.tracer.project.id %}?folder={{ item.id }}">{{ item.name }}</a>
+                       </td>
+                  <td>-</td>
+              {% endif %}
+            <td>{{ item.update_user.username }}</td>
+            <td>{{ item.update_datetime }}</td>
+            <td>
+                    {% if item.file_type == 1 %}
+{#                        //删除#}
+                       <a class="btn btn-primary btn-xs"    data-name="{{ item.name }}"  data-fid="{{ item.id }}" href="{{ item.file_path }}"><i class="fa fa-download"></i></a>
+
+                    <a class="btn btn-danger btn-xs" data-target="#alertModal" data-toggle="modal" data-name="{{ item.name }}"  data-fid="{{ item.id }}"><i class="fa fa-trash"></i></a>
+              {% else %}
+                         <a class="btn btn-default btn-xs" data-toggle="modal" data-whatever="编辑" data-target="#addModal" data-name="{{ item.name }}" data-fid="{{ item.id }}">
+                             <i class="fa fa-pencil-square-o"></i>
+                             </a>
+
+                        <a class="btn btn-danger btn-xs" data-target="#alertModal" data-toggle="modal" data-name="{{ item.name }}"  data-fid="{{ item.id }}"><i class="fa fa-trash"></i></a>
+                {% endif %}
+            </td>
+          </tr>
+
+   {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+<div class="upload-progress hide" id="uploadprogress" >
+<div class="panel panel-primary">
+  <div class="panel-heading">
+      <i class="fa fa-cloud-upload" aria-hidden="true"></i>上传进度
+  </div>
+    <table class="table">
+        <tbody id="progresslist">
+
+        </tbody>
+    </table>
+</div>
+</div>
+
+{#    进度条模板#}
+    <div class="hide">
+
+    <table id="progressTemplate">
+        <tr>
+                   <td>
+                       <div class="name"></div>
+                <div class="progress">
+  <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%">
+  </div>
+</div>
+            </td>
+
+        </tr>
+    </table>
+    </div>
+
+
+    <div class="alert panel panel-danger hide" id='error-modal' role="alert">
+    <div class="panel-heading">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+          <span class="label label-danger" id="error-type">Danger</span>
+       <h4 id="error-title"> Oh snap! You got an error! </h4>
+    </div>
+
+        <div class="panel panel-body" id="error-content">
+      Change this and that and try again. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Cras mattis consectetur purus sit amet fermentum.
+    </div>
+        <div id="error-button">
+        <button type="button" class="btn btn-primary" id="error-select">确认</button>
+        <button type="button" class="btn btn-default" data-dismiss="alert" aria-label="Close" >取消</button>
+</div>
+    </div>
+
+
+
+{% endblock %}
+
+{% block js %}
+        <script rel="script" src="{% static 'web/js/cos-js-sdk-v5.min.js' %}"></script>
+    <script>
+    var FOLDER_URL='{% url "web:file" project_id=request.tracer.project.id %}';
+    var FOLDER_DELETE_URL='{% url "web:file_delete" project_id=request.tracer.project.id %}';
+     var COS_URL='{% url "web:cos_credential" project_id=request.tracer.project.id %}'
+     var FILEPOST_URL='{% url "web:file_post" project_id=request.tracer.project.id %}'
+
+
+    $(function () {
+        initAddModal();
+        bingmodalsubmit()
+        bindelete();
+        binduploadFIle();
+
+
+    })
+
+
+
+    function initAddModal(){
+          $('#addModal').on('show.bs.modal', function (event) {
+
+                  var button = $(event.relatedTarget); // Button that triggered the modal
+                  var recipient = button.data('whatever'); // Extract info from data-* attributes
+                  var name = button.data('name'); // Extract info from data-* attributes
+                  var fid = button.data('fid'); // Extract info from data-* attributes
+                  var modal = $(this);
+                  recipient=recipient+'文件夹';
+                  modal.find('.modal-title').text(recipient)
+                  //新建
+                    if(fid) {
+                        modal.find('#id_name').val(name)
+                        modal.find('#fid').val(fid)
+                    }
+                    else{
+                         modal.find('.error-msg').empty();
+                        $('#form')[0].reset();}//重置清空
+
+
+          }
+          )
+
+          $('#alertModal').on('show.bs.modal', function (event) {
+                  var button = $(event.relatedTarget); // Button that triggered the modal
+                  var recipient = button.data('whatever'); // Extract info from data-* attributes
+                  var name = button.data('name'); // Extract info from data-* attributes
+                  var fid = button.data('fid'); // Extract info from data-* attributes
+
+                 $('#btndelete').attr('fid',fid)
+
+          })
+
+    }
+    var folderid;
+    function bingmodalsubmit() {
+        $("#btnsubmit").click(function () {
+            console.log(11)
+
+                           var url = document.URL;
+                    var queryParams = new URLSearchParams(new URL(url).search);
+                    var  folderid = queryParams.get('folder');
+                    var FOLDER_URL='{% url "web:file" project_id=request.tracer.project.id %}?folder='+folderid;
+
+            $.ajax(
+                {
+                    url:FOLDER_URL,
+                    type:"POST",
+                    data:$("#form").serialize(),
+                    dataType:"JSON",
+                    success:function (res) {
+                        if(res.status){
+                            location.reload();
+                        }
+                        else {
+                             $.each(res.error, function(key, value) {
+                        $("#id_" + key).next().text(value[0]);
+                    });
+                        }
+
+                    }
+                }
+            )
+
+        })
+
+    }
+
+    function bindelete() {
+        $('#btndelete').click(function () {
+
+            $.ajax({
+                url:FOLDER_DELETE_URL,
+                type:'POST',
+                data:{fid:$(this).attr('fid')},
+                success:function (res) {
+                    if(res.status){
+                        location.reload();
+
+                    }
+                }
+
+            })
+        })
+
+    }
+
+
+function chineseToHex(str) {
+  let hex = '';
+  for (let i = 0; i < str.length; i++) {
+    // 获取字符的Unicode码点并转换为16进制字符串
+    const unicodeHex = str.charCodeAt(i).toString(16);
+    hex += unicodeHex.padStart(4, '0'); // 将16进制字符串补齐为4位
+  }
+  return hex;
+}
+
+
+
+
+    function binduploadFIle() {
+        $('#uploadFile').change(function () {
+            var file_List=$(this)[0].files;
+            var checkFilelist=[];
+            var file_object;
+            $.each(
+                file_List,function (index,fileobject) {
+                    checkFilelist.push(
+                        {
+                            name:fileobject.name,size:fileobject.size
+                        }
+                    )
+
+                })
+
+            const cos = new COS({
+    // getAuthorization 必选参数
+    getAuthorization: function (options, callback) {
+        // 初始化时不会调用，只有调用 cos 方法（例如 cos.putObject）时才会进入
+        // 异步获取临时密钥
+        // 服务端 JS 和 PHP 例子：https://github.com/tencentyun/cos-js-sdk-v5/blob/master/server/
+        // 服务端其他语言参考 COS STS SDK ：https://github.com/tencentyun/qcloud-cos-sts-sdk
+        // STS 详细文档指引看：https://cloud.tencent.com/document/product/436/14048
+
+        const url = COS_URL; // url 替换成您自己的后端服务
+        const xhr = new XMLHttpRequest();
+        let data =null
+        let credentials = null;
+        xhr.open('POST', url, true);
+        xhr.onload = function (e) {
+            try {
+              data = JSON.parse(e.target.responseText);
+                console.log(data)
+              credentials = data.credentials;
+                          if (!data.status || !credentials) {
+                                $('#error-modal').removeClass('hide');
+                                  $('#error-title').text('容量警告提醒')
+                                  $('#error-content').text(data.error);
+                              
+                                  $('#error-select').click(function () {
+                                        location.reload()
+                                          }
+                                      )
+                              return console.error('credentials invalid:\n' + JSON.stringify(data, null, 2));}
+                          else
+                              {
+                            $('#uploadprogress').removeClass('hide');
+
+                              }
+                          }
+            catch (e) {
+            }
+            callback({
+              TmpSecretId: credentials.tmpSecretId,
+              TmpSecretKey: credentials.tmpSecretKey,
+              SecurityToken: credentials.sessionToken,
+              // 建议返回服务器时间作为签名的开始时间，避免用户浏览器本地时间偏差过大导致签名错误
+              StartTime: data.startTime, // 时间戳，单位秒，如：1580000000
+              ExpiredTime: data.expiredTime, // 时间戳，单位秒，如：1580000000
+          });
+        };
+        xhr.send(JSON.stringify({'data':checkFilelist}));
+    }
+});
+
+
+
+            $('#progresslist').empty();
+              $.each(
+                file_List,function (index,fileobject) {
+                    var progress_tr=$("#progressTemplate").find('tr').clone();
+                    progress_tr.find('.name').text(fileobject.name)
+                    $('#progresslist').append(progress_tr);
+
+                    var url = document.URL;
+                    var queryParams = new URLSearchParams(new URL(url).search);
+                    var folderValue = queryParams.get('folder');
+
+
+                    var key=(new Date()).getTime()+"_"+chineseToHex(fileobject.name)+'.'+fileobject.name.split('.')[fileobject.name.split('.').length-1];
+                    function excute_cso_upload(){
+                           cos.putObject({
+                        Bucket: '{{ request.tracer.project.bucket }}', /* 填入您自己的存储桶，必须字段 */
+                        Region: '{{ request.tracer.project.region }}',  /* 存储桶所在地域，例如ap-beijing，必须字段 */
+                        Key:  key,  /* 存储在桶里的对象键（例如1.jpg，a/b/test.txt），必须字段 */
+                        Body: fileobject, /* 必须，上传文件对象，可以是input[type="file"]标签选择本地文件后得到的file对象 */
+                        SliceSize: 1024 * 1024 * 5,     /* 触发分块上传的阈值，超过5MB使用分块上传，非必须 */
+                        onTaskReady: function(taskId) {                   /* 非必须 */
+                            console.log(taskId);
+                        },
+                        onProgress: function (progressData) {           /* 非必须 */
+
+                            console.log(JSON.stringify(progressData));
+                            var percent=progressData.percent*100;
+                            progress_tr.find('.progress-bar').css('width',percent+'%')
+
+                        },
+                        onFileFinish: function (err, data, options) {   /* 非必须 */
+                           console.log(options.Key + '上传' + (err ? '失败' : '完成'));
+                        },
+                        // 支持自定义headers 非必须
+                        Headers: {
+                          'x-cos-meta-test': 123
+                        },
+                    }, function(err, datas) {
+                        console.log(err || datas);
+                        if(datas && datas.statusCode === 200){
+                                   new Promise(function(resolve, reject) {
+                        resolve(datas);
+                    }).then(function(datas) {
+
+                        $.post(
+                            FILEPOST_URL+'?',{
+                                'name':fileobject.name,
+                                'file_size':fileobject.size,
+                                'key':key,
+                                'folderid':folderValue,
+                                file_path:datas.location,
+                                etag:datas.etag,
+                                'type':'save'
+                            }, function (res) {
+                                console.log(res)
+                            }
+                        )
+                    });
+                        }
+
+                    })
+                    };
+                    $.post(
+                                FILEPOST_URL,{
+                                    'name':fileobject.name,
+                                    'file_size':fileobject.size,
+                                     'key':key,
+                                    'folderid':folderValue,
+                                    'file_path':'',
+                                    'etag':'',
+                                    'type':'check'
+                                },function (res) {
+                              if(res) {
+                                  if (res.status) {
+                                      excute_cso_upload()
+                                  } else {
+                                      $('#error-modal').removeClass('hide');
+                                      $('#error-title').text('覆盖提醒')
+                                      $('#error-content').text(res.error+' 确认将会继续执行');
+                                      $('#error-select').click(
+                                          function () {
+                                              excute_cso_upload();
+                                                 $('#error-modal').addClass('hide');
+                                          }
+                                      )
+
+                                  }
+                              }
+                              else{
+                                  {#console.log(res)#}
+                                  $('#error-modal').removeClass('hide');
+                                  $('#error-title').text('错误提醒')
+                                  $('#error-content').text(res.error);
+                                  $('#error-select').click(function () {
+                                             $('#error-modal').addClass('hide');
+
+                                          }
+                                      )
+
+                              }
+                           })
+                                }
+                            )
+                    ;
+            {#location.reload()#}
+        })
+
+
+
+
+    }
+
+
+    </script>
+
+
+{% endblock %}
