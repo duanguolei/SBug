@@ -1,43 +1,43 @@
-# ÇáÁ¿bug¹ÜÀíÆ½Ì¨
-> Æ½Ì¨Ò»²½Ò»²½Ñ§Ï°ÏîÄ¿£¬·ÇÔ­´´£¬Ö§³Ö¶ÌĞÅÑéÖ¤ÂëµÇÂ¼×¢²á£¬¼Û¸ñ²ßÂÔ£¬Ö§¸¶±¦É³ºĞÖ§¸¶£¬ÏîÄ¿¹ÜÀí£¬¸ÅÊö£¬ÎÊÌâÍ³¼Æ£¬cosÎÄ¼ş¹ÜÀí,ÆÀÂÛ£¬wikiµÈ¹¦ÄÜ
+# è½»é‡bugç®¡ç†å¹³å°
+> å¹³å°ä¸€æ­¥ä¸€æ­¥å­¦ä¹ é¡¹ç›®ï¼ŒéåŸåˆ›ï¼Œæ”¯æŒçŸ­ä¿¡éªŒè¯ç ç™»å½•æ³¨å†Œï¼Œä»·æ ¼ç­–ç•¥ï¼Œæ”¯ä»˜å®æ²™ç›’æ”¯ä»˜ï¼Œé¡¹ç›®ç®¡ç†ï¼Œæ¦‚è¿°ï¼Œé—®é¢˜ç»Ÿè®¡ï¼Œcosæ–‡ä»¶ç®¡ç†,è¯„è®ºï¼Œwikiç­‰åŠŸèƒ½
 
 
-## ²¿·ÖÏîÄ¿¼òµ¥Õ¹Ê¾
-![img.png](img.png)
-![img_1.png](img_1.png)
-![img_2.png](img_2.png)
-![img_3.png](img_3.png)
-![img_4.png](img_4.png)
-![img_5.png](img_5.png)
+## éƒ¨åˆ†é¡¹ç›®ç®€å•å±•ç¤º
+![image-20240617160859083](./images/img_0.png)
+![img_1.png](./images/img_1.png)
+![img_2.png](./images/img_2.png)
+![img_3.png](./images/img_3.png)
+![img_4.png](./images/img_4.png)
+![img_5.png](./images/img_5.png)
 
-## ÔËĞĞ
-1.ÏÂÔØÏîÄ¿
+## è¿è¡Œ
+1.ä¸‹è½½é¡¹ç›®
 > git clone https://github.com/duanguolei/Sbug.git
 
-2.ÏÂÔØÒÀÀµ
-> cd Sbug
+2.ä¸‹è½½ä¾èµ–
+> cd SBug
 
 > pip install -r requirements.txt
 
-3.ÅäÖÃ»·¾³
-> ¼ûSBug/SBug/local_settings(copy).pyÎÄ¼ş£¬¸ÄÃûÎªlocal_settings.py£¬
-> ²¢ÅäÖÃÆäÖĞµÄÊı¾İ¿â£¬Ö§¸¶±¦£¬ÔÆ¶ÌĞÅ£¬cosµÈĞÅÏ¢£¬¿ÉÉÏÍø²éÑ¯Ïà¹ØÅäÖÃ
+3.é…ç½®ç¯å¢ƒ
+> è§SBug/SBug/local_settings(copy).pyæ–‡ä»¶ï¼Œæ”¹åä¸ºlocal_settings.pyï¼Œ
+> å¹¶é…ç½®å…¶ä¸­çš„æ•°æ®åº“ï¼Œæ”¯ä»˜å®ï¼Œäº‘çŸ­ä¿¡ï¼Œcosç­‰ä¿¡æ¯ï¼Œå¯ä¸Šç½‘æŸ¥è¯¢ç›¸å…³é…ç½®
 
-4.Ç¨ÒÆÊı¾İ¿â
+4.è¿ç§»æ•°æ®åº“
 > python manage.py migrate
 
 > python manage.py makemigrations
 
 > python manage.py migrate
 
-5.³õÊ¼»¯²ßÂÔ
+5.åˆå§‹åŒ–ç­–ç•¥
 > python scripts_tool/create_price_policy.py
 
 > python scripts_tool/init_price_policy.py
 
-6.ÔËĞĞ
+6.è¿è¡Œ
 
 
 > python manage.py runserver
 
-·ÃÎÊ: http://127.0.0.1:8000/web
+è®¿é—®: http://127.0.0.1:8000/web
