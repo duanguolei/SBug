@@ -12,10 +12,11 @@ from django.shortcuts import render,reverse
 from web.forms.issues import IssuesModalFrom,IssuesReplyModalFrom,InviteModelFrom
 from django.http import JsonResponse,HttpResponse
 from web.models import Issues,IssuesRely
-from django.core.paginator import Paginator,PageNotAnInteger,EmptyPage
+# from django.core.paginator import Paginator,PageNotAnInteger,EmptyPage
 from django.views.decorators.csrf import  csrf_exempt
 from django.utils.safestring import mark_safe
 from  web import models
+from utils.pagination import Pagination
 from utils.encrypt import uid
 class  CheckFilter(object):
     def __init__(self,name,datalist,request):
@@ -101,7 +102,7 @@ def issues(request,project_id):
     if request.method=='GET':
 
         #每页渲染5个
-        page = 5
+        limit_page = 5
 
 
         #获取用户传参，删选
@@ -119,18 +120,28 @@ def issues(request,project_id):
 
         issues_all_list=Issues.objects.filter(project=request.tracer.project).filter(**condition).all()
 
-        now_page=request.GET.get('page',1)
-        paginator=Paginator(issues_all_list,page)
+        page_object = Pagination(
+            current_page=request.GET.get('page',1),
+            all_count=issues_all_list.count(),
+            base_url=request.path_info,
+            query_params=request.GET,
+            per_page=limit_page,
+        )
+        contacts= issues_all_list[page_object.start:page_object.end]
 
+        # now_page=request.GET.get('page',1)
+        # paginator=Paginator(issues_all_list,page)
+        #
+        #
+        # try:
+        #     contacts=paginator.page(now_page)
+        # except PageNotAnInteger:
+        #     # 如果用户请求的页码号不是整数，显示第一页
+        #     contacts = paginator.page(1)
+        # except EmptyPage:
+        #     # 如果用户请求的页码号超过了最大页码号，显示最后一页
+        #     contacts = paginator.page(paginator.num_pages)
 
-        try:
-            contacts=paginator.page(now_page)
-        except PageNotAnInteger:
-            # 如果用户请求的页码号不是整数，显示第一页
-            contacts = paginator.page(1)
-        except EmptyPage:
-            # 如果用户请求的页码号超过了最大页码号，显示最后一页
-            contacts = paginator.page(paginator.num_pages)
 
 
         form=IssuesModalFrom(request)
@@ -145,6 +156,7 @@ def issues(request,project_id):
 
 
         return render(request,'web/issues.html',{"form":form,
+                                                 'page_html': page_object.page_html(),
                                                  'invite_form':invite_form,
                                                  'item_list':contacts,
                                                  'filter_list': [

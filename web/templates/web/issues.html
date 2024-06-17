@@ -167,10 +167,10 @@
       </table>
 
         </div>
-                    <nav aria-label="Page navigation">
-      <ul class="pagination" id="pageul">
-
-      </ul>
+                      <nav aria-label="">
+        <ul class="pagination" style="margin-top: 0;">
+            {{ page_html|safe }}
+        </ul>
     </nav>
     </div>
     </div>
@@ -434,8 +434,8 @@
        bindBootStrapShownEvent();
        initdatapark()
         bindaddbutoon();
-       initautoincrementpage();
-       autoincrementpage();
+       {#initautoincrementpage();#}
+       {#autoincrementpage();#}
        bindCLickCheckFilter();
 
 
@@ -448,89 +448,85 @@
                location.href=$(this).parent().attr('href')
            })
        }
-       function autoincrementpage() {
-
-           var pageul=$('#pageul');
-           pageul.empty();
-
-           var queryParmas=new URLSearchParams(new URL(document.URL).search);
-           var page=parseInt(queryParmas.get('page'));
-
-           var now_url=document.URL;
-
-           if(!page)
-           {
-               page=1
-               queryParmas.set('page',page)
-               now_url=window.location.origin+window.location.pathname+"?"+queryParmas.toString();
-           }
-            var previw_page=page-1;
-               var next_page=page+1;
-               queryParmas.set('page',previw_page)
-               var url=window.location.origin+window.location.pathname+"?"+queryParmas.toString();
-               var previwli=$('<li>').append(
-                   $('<a>').attr('href',url).attr('aria-label','Previous').append(
-                       $("<span>").attr('aria-hidden',true).text('«')
-                   )
-               );
-               pageul.append(previwli)
-
-            if(page>3){
-               for(i=-2;i<3;i++) {
-                   var li_page = page + i;
-                   queryParmas.set('page',li_page)
-                   var url=window.location.origin+window.location.pathname+"?"+queryParmas.toString();
-
-                   if (page == li_page) {
-                       var li = $('<li>').append(
-                           $('<a>').attr('href', url).text(li_page)).attr('class', 'active');
-                       pageul.append(li)
-                   } else {
-                       var li = $('<li>').append(
-                           $('<a>').attr('href', url).text(li_page));
-                       pageul.append(li)
-                   }
-               }
-            }
-            else{
-                 for(i=1;i<6;i++) {
-                   var li_page = i;
-                   queryParmas.set('page',li_page);
-                   var url=window.location.origin+window.location.pathname+"?"+queryParmas.toString();
-
-                   if (page == li_page) {
-                       var li = $('<li>').append(
-                           $('<a>').attr('href', url).text(li_page)).attr('class', 'active');
-                       pageul.append(li)
-                   } else {
-                       var li = $('<li>').append(
-                           $('<a>').attr('href', url).text(li_page));
-                       pageul.append(li)
-                   }
-               }
-            }
-
-                 queryParmas.set('page',next_page)
-                   var url=window.location.origin+window.location.pathname+"?"+queryParmas.toString();
-
-               var nextli=$('<li>').append(
-                   $('<a>').attr('href',url).attr('aria-label','Previous').append(
-                       $("<span>").attr('aria-hidden',true).text('»')
-                   )
-               );
-               pageul.append(nextli)
-       }
-
-
-       function  initautoincrementpage() {
-
-           $('#pageul').click(
-               function () {
-                    autoincrementpage()
-
-       }
-       )
-       }
+       {#function autoincrementpage() {#}
+       {##}
+       {#    var pageul=$('#pageul');#}
+       {#    pageul.empty();#}
+       {##}
+       {#    var queryParmas=new URLSearchParams(new URL(document.URL).search);#}
+       {#    var page=parseInt(queryParmas.get('page'));#}
+       {##}
+       {#    var now_url=document.URL;#}
+       {##}
+       {#    if(!page)#}
+       {#    {#}
+       {#        page=1#}
+       {#        queryParmas.set('page',page)#}
+       {#        now_url=window.location.origin+window.location.pathname+"?"+queryParmas.toString();#}
+       {#    }#}
+       {#     var previw_page=page-1;#}
+       {#        var next_page=page+1;#}
+       {#        queryParmas.set('page',previw_page)#}
+       {#        var url=window.location.origin+window.location.pathname+"?"+queryParmas.toString();#}
+       {#        var previwli=$('<li>').append(#}
+       {#            $('<a>').attr('href',url).attr('aria-label','Previous').append(#}
+       {#                $("<span>").attr('aria-hidden',true).text('«')#}
+       {#            )#}
+       {#        );#}
+       {#        pageul.append(previwli)#}
+       {##}
+       {#     if(page>3){#}
+       {#        for(i=-2;i<3;i++) {#}
+       {#            var li_page = page + i;#}
+       {#            queryParmas.set('page',li_page)#}
+       {#            var url=window.location.origin+window.location.pathname+"?"+queryParmas.toString();#}
+       {##}
+       {#            if (page == li_page) {#}
+       {#                var li = $('<li>').append(#}
+       {#                    $('<a>').attr('href', url).text(li_page)).attr('class', 'active');#}
+       {#                pageul.append(li)#}
+       {#            } else {#}
+       {#                var li = $('<li>').append(#}
+       {#                    $('<a>').attr('href', url).text(li_page));#}
+       {#                pageul.append(li)#}
+       {#            }#}
+       {#        }#}
+       {#     }#}
+       {#     else{#}
+       {#          for(i=1;i<6;i++) {#}
+       {#            var li_page = i;#}
+       {#            queryParmas.set('page',li_page);#}
+       {#            var url=window.location.origin+window.location.pathname+"?"+queryParmas.toString();#}
+       {##}
+       {#            if (page == li_page) {#}
+       {#                var li = $('<li>').append(#}
+       {#                    $('<a>').attr('href', url).text(li_page)).attr('class', 'active');#}
+       {#                pageul.append(li)#}
+       {#            } else {#}
+       {#                var li = $('<li>').append(#}
+       {#                    $('<a>').attr('href', url).text(li_page));#}
+       {#                pageul.append(li)#}
+       {#            }#}
+       {#        }#}
+       {#     }#}
+       {##}
+       {#          queryParmas.set('page',next_page)#}
+       {#            var url=window.location.origin+window.location.pathname+"?"+queryParmas.toString();#}
+       {##}
+       {#        var nextli=$('<li>').append(#}
+       {#            $('<a>').attr('href',url).attr('aria-label','Previous').append(#}
+       {#                $("<span>").attr('aria-hidden',true).text('»')#}
+       {#            )#}
+       {#        );#}
+       {#        pageul.append(nextli)#}
+       {#}#}
+       {##}
+       {##}
+       {#function  initautoincrementpage() {#}
+       {##}
+       {#    $('#pageul').click(#}
+       {#        function () {#}
+       {#             autoincrementpage()})}#}
 
         function bindBootStrapShownEvent() {
             $('#addModal').on('shown.bs.modal', function (event) {
