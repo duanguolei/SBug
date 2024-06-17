@@ -12,7 +12,7 @@
 
 ## 运行
 1.下载项目
-> git clone https://github.com/duanguolei/Sbug.git
+> git clone https://github.com/duanguolei/SBug.git
 
 2.下载依赖
 > cd SBug
