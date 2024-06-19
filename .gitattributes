@@ -1,2 +1,4 @@
-*.cs linguist-language=ｐｙｔｈｏｎ
-*.ico linguist-language=ｐｙｔｈｏｎ
+*.js linguist-language=python
+*.css linguist-language=python
+*.html linguist-language=python
+*.python linguist-language=python
