@@ -134,8 +134,9 @@ USE_TZ = False
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "app01", "static"),
-    os.path.join(BASE_DIR, "web", "static"),
+    # os.path.join(BASE_DIR, "app01", "static"),
+    # os.path.join(BASE_DIR, "web", "static"),
+    os.path.join(BASE_DIR, "static"),
 ]
 
 

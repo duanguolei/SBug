@@ -1,6 +1,8 @@
 # 轻量bug管理平台
-> 平台一步一步学习项目，非原创，支持短信验证码登录注册，价格策略，支付宝沙盒支付，项目管理，概述，问题统计，cos文件管理,评论，wiki,邀请等功能
-
+> 平台一步一步学习项目，非原创，支持短信验证码登录注册，价格策略，支付宝沙盒，云短信，项目管理，概述，问题统计，cos文件管理,评论，wiki,邀请等功能。
+>(主体大部分功能完成，小部分未完善)
+> 
+- 项目demo地址:http://www.mydgl.cn:8082/web, 账号 admin,密码 123456
 
 ## 部分项目简单展示
 ![image-20240617160859083](./images/img_0.png)
@@ -30,8 +32,6 @@ pip install -r requirements.txt
 
 4.迁移数据库
 ```shell
-python manage.py migrate
-
 python manage.py makemigrations
 
 python manage.py migrate
